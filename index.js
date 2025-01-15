@@ -35,11 +35,32 @@ async function run() {
 
     await client.connect();
 
-    app.post('/role', async(req, res) => {
-        const role = req.body;
-        const result = await roleCollection.insertOne(role);
-        res.send(result);
+    app.post('/role', async (req, res) => {
+
+      const role = req.body;
+
+      const query = { email: role.email }
+      const existingUser = await roleCollection.findOne(query)
+      if (existingUser) {
+        return res.send({ message: 'users already exist', insertedId: null })
+      }
+
+      const result = await roleCollection.insertOne(role);
+      res.send(result);
     })
+
+    app.get('/user/teacher/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email : email}
+      const user = await roleCollection.findOne(query);
+      let teacher = false;
+      if(user) {
+        teacher = user?.role === 'teacher'
+      }
+      res.send({teacher});
+    })
+
+    
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -53,6 +74,6 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Hello from scollaborative study server ....')
-  })
-  app.listen(port, () => console.log(`server running on port : ${port}`))
+  res.send('Hello from scollaborative study server ....')
+})
+app.listen(port, () => console.log(`server running on port : ${port}`))
