@@ -35,7 +35,7 @@ async function run() {
 
 
     await client.connect();
-//  for role
+    //  for role
     app.post('/role', async (req, res) => {
 
       const role = req.body;
@@ -68,6 +68,20 @@ async function run() {
       const data = req.body;
       const result = await sessionCollection.insertOne(data);
       res.send(result);
+    });
+
+
+    // admin server
+
+    app.post('/user/admin/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const user = await roleCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === 'admin'
+      }
+      res.send({ admin });
     })
 
 
