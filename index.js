@@ -31,10 +31,11 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
 
     const roleCollection = client.db('studyZone').collection('role');
+    const sessionCollection = client.db('studyZone').collection('sessionCollection');
 
 
     await client.connect();
-
+//  for role
     app.post('/role', async (req, res) => {
 
       const role = req.body;
@@ -49,18 +50,27 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/user/teacher/:email', async(req, res) => {
+
+    // teacher 
+    app.get('/user/teacher/:email', async (req, res) => {
       const email = req.params.email;
-      const query = {email : email}
+      const query = { email: email }
       const user = await roleCollection.findOne(query);
       let teacher = false;
-      if(user) {
+      if (user) {
         teacher = user?.role === 'teacher'
       }
-      res.send({teacher});
+      res.send({ teacher });
+    });
+
+
+    app.post('/addSession', async (req, res) => {
+      const data = req.body;
+      const result = await sessionCollection.insertOne(data);
+      res.send(result);
     })
 
-    
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
