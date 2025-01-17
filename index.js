@@ -79,7 +79,7 @@ async function run() {
       const id = req.params.id;
       console.log(id, userData.role)
       const query = { _id: new ObjectId(id) };
-      
+
       const updatedDoc = {
         $set: {
           role: userData.role
@@ -102,9 +102,30 @@ async function run() {
 
 
     app.get('/all-role', async (req, res) => {
-      const result = await roleCollection.find().toArray();
+
+      const search = req.query.search;
+      console.log(search)
+      let query = {};
+      if (search) {
+        query = {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+          ]
+        };
+      }
+
+      const result = await roleCollection.find(query).toArray();
+      res.send(result);
+    });
+
+
+    app.get('/allSession/admin', async (req, res) => {
+      const result = await sessionCollection.find().toArray();
       res.send(result);
     })
+
+    app.patch('/status', async(req, res))
 
 
     // Send a ping to confirm a successful connection
