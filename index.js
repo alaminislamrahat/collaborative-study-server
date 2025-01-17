@@ -70,6 +70,30 @@ async function run() {
       res.send(result);
     });
 
+    
+    app.get('/session/:id', async(req, res) => {
+      const id = req.params.id;
+      
+      const query = {_id: new ObjectId(id)};
+      const result = await sessionCollection.findOne(query);
+      console.log(result)
+      res.send(result)
+    });
+
+
+    app.put('/update/session/:id', async(req, res) => {
+      const data = req.body;
+      const id = req.params.id
+      const query = {_id : new ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          ...data
+        }
+      };
+      const result = await sessionCollection.updateOne(query,updatedDoc);
+      res.send(result);
+    })
+
 
     // admin server
 
