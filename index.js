@@ -125,7 +125,21 @@ async function run() {
       res.send(result);
     })
 
-    app.patch('/status', async(req, res))
+    app.put('/status/:id', async(req, res)=>{
+      const data = req.body;
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          status : data.status,
+          registrationFee : data.registrationFee
+
+        }
+      };
+
+      const result = await sessionCollection.updateOne(query,updatedDoc);
+      res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
