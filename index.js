@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.3jkraio.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -73,7 +73,23 @@ async function run() {
 
     // admin server
 
-    app.post('/user/admin/:email', async (req, res) => {
+    app.put('/users/role/:id', async (req, res) => {
+      const userData = req.body;
+      console.log(userData)
+      const id = req.params.id;
+      console.log(id, userData.role)
+      const query = { _id: new ObjectId(id) };
+      
+      const updatedDoc = {
+        $set: {
+          role: userData.role
+        }
+      }
+      const result = await roleCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    });
+
+    app.get('/user/admin/:email', async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
       const user = await roleCollection.findOne(query);
@@ -82,6 +98,12 @@ async function run() {
         admin = user?.role === 'admin'
       }
       res.send({ admin });
+    });
+
+
+    app.get('/all-role', async (req, res) => {
+      const result = await roleCollection.find().toArray();
+      res.send(result);
     })
 
 
