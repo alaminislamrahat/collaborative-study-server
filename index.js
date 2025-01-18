@@ -70,27 +70,35 @@ async function run() {
       res.send(result);
     });
 
-    
-    app.get('/session/:id', async(req, res) => {
+
+    app.get('/session/:id', async (req, res) => {
       const id = req.params.id;
-      
-      const query = {_id: new ObjectId(id)};
+
+      const query = { _id: new ObjectId(id) };
       const result = await sessionCollection.findOne(query);
       console.log(result)
       res.send(result)
     });
 
 
-    app.put('/update/session/:id', async(req, res) => {
+    app.delete('/session/delete/tutor/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await sessionCollection.deleteOne(query);
+      res.send(result)
+    })
+
+
+    app.put('/update/session/:id', async (req, res) => {
       const data = req.body;
       const id = req.params.id
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
           ...data
         }
       };
-      const result = await sessionCollection.updateOne(query,updatedDoc);
+      const result = await sessionCollection.updateOne(query, updatedDoc);
       res.send(result);
     })
 
@@ -145,23 +153,59 @@ async function run() {
 
 
     app.get('/allSession/admin', async (req, res) => {
-      const result = await sessionCollection.find().toArray();
+      const email = req.query.email
+      console.log(email)
+      const result = await sessionCollection.find({
+        tutorEmail: email
+      }).toArray();
       res.send(result);
     })
 
-    app.put('/status/:id', async(req, res)=>{
+    app.put('/status/:id', async (req, res) => {
       const data = req.body;
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
-          status : data.status,
-          registrationFee : data.registrationFee
+          status: data.status,
+          registrationFee: data.registrationFee
 
         }
       };
 
-      const result = await sessionCollection.updateOne(query,updatedDoc);
+      const result = await sessionCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    });
+
+
+    app.get('/session/admin/:id', async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: new ObjectId(id) };
+      const result = await sessionCollection.findOne(query);
+      console.log(result)
+      res.send(result)
+    });
+
+
+    app.delete('/session/delete/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await sessionCollection.deleteOne(query);
+      res.send(result)
+    })
+
+
+    app.put('/update/session/admin/:id', async (req, res) => {
+      const data = req.body;
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          ...data
+        }
+      };
+      const result = await sessionCollection.updateOne(query, updatedDoc);
       res.send(result);
     })
 
