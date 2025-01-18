@@ -102,6 +102,15 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/allSession/tutor', async (req, res) => {
+      const email = req.query.email
+      console.log(email)
+      const result = await sessionCollection.find({
+        tutorEmail: email
+      }).toArray();
+      res.send(result);
+    })
+
 
     // admin server
 
@@ -153,11 +162,8 @@ async function run() {
 
 
     app.get('/allSession/admin', async (req, res) => {
-      const email = req.query.email
-      console.log(email)
-      const result = await sessionCollection.find({
-        tutorEmail: email
-      }).toArray();
+      
+      const result = await sessionCollection.find().toArray();
       res.send(result);
     })
 
