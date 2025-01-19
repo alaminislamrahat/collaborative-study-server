@@ -52,6 +52,32 @@ async function run() {
     })
 
 
+    // student 
+
+    app.get('/user/student/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const user = await roleCollection.findOne(query);
+      let teacher = false;
+      if (user) {
+        student = user?.role === 'student'
+      }
+      res.send({ student });
+    });
+
+    app.get('/all-session-card', async (req, res) => {
+      const result = await sessionCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get('/detail/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const result = await sessionCollection.findOne(query);
+      res.send(result);
+    })
+
+
     // teacher 
     app.get('/user/teacher/:email', async (req, res) => {
       const email = req.params.email;
@@ -150,7 +176,7 @@ async function run() {
 
     })
 
-   
+
 
     // admin server
 
@@ -257,7 +283,7 @@ async function run() {
 
 
     app.get('/allMaterial/admin', async (req, res) => {
-     
+
       const result = await materialCollection.find().toArray();
       res.send(result)
     });
