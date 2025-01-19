@@ -32,6 +32,7 @@ async function run() {
 
     const roleCollection = client.db('studyZone').collection('role');
     const sessionCollection = client.db('studyZone').collection('sessionCollection');
+    const materialCollection = client.db('studyZone').collection('materialCollection');
 
 
     await client.connect();
@@ -104,13 +105,52 @@ async function run() {
 
     app.get('/allSession/tutor', async (req, res) => {
       const email = req.query.email
-      console.log(email)
+      // console.log(email)
       const result = await sessionCollection.find({
         tutorEmail: email
       }).toArray();
+
+      res.send(result);
+    });
+
+
+    // materila 
+
+    app.post('/upload/material', async (req, res) => {
+      const data = req.body;
+      const result = await materialCollection.insertOne(data);
       res.send(result);
     })
 
+    app.get('/allMaterial', async (req, res) => {
+      const email = req.query.email;
+      const result = await materialCollection.find({ tutorEmail: email }).toArray();
+      res.send(result)
+    });
+
+    app.get('/material/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await materialCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.put('/update/material/:id', async (req, res) => {
+      const material = req.body;
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          ...material
+        }
+      }
+
+      const result = await materialCollection.updateOne(query, updatedDoc);
+      res.send(result);
+
+    })
+
+   
 
     // admin server
 
@@ -162,7 +202,7 @@ async function run() {
 
 
     app.get('/allSession/admin', async (req, res) => {
-      
+
       const result = await sessionCollection.find().toArray();
       res.send(result);
     })
@@ -212,6 +252,22 @@ async function run() {
         }
       };
       const result = await sessionCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    })
+
+
+    app.get('/allMaterial/admin', async (req, res) => {
+     
+      const result = await materialCollection.find().toArray();
+      res.send(result)
+    });
+
+
+    // delete for both teacher and admin 
+    app.delete('/delete/material/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await materialCollection.deleteOne(query);
       res.send(result);
     })
 
