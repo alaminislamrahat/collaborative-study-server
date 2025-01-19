@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-
+const stripe = require('stripe')(process.env.STRIPE_KEY)
 
 
 const port = process.env.PORT || 5000;
@@ -33,6 +33,7 @@ async function run() {
     const roleCollection = client.db('studyZone').collection('role');
     const sessionCollection = client.db('studyZone').collection('sessionCollection');
     const materialCollection = client.db('studyZone').collection('materialCollection');
+    const bookingCollection = client.db('studyZone').collection('bookingCollection');
 
 
     await client.connect();
@@ -52,7 +53,22 @@ async function run() {
     })
 
 
+    // booking collection 
+    app.post('/booking', async(req, res) => {
+      const data = req.body;
+      const id = data.studySessionId;
+      const query = {studySessionId : id};
+      const isExit = await bookingCollection.findOne(query);
+      if(isExit){
+        return res.send({message : 'all Ready exist'})
+      } 
+      const result = await bookingCollection.insertOne(data);
+      res.send(result);
+    })
+
     // student 
+
+
 
     app.get('/user/student/:email', async (req, res) => {
       const email = req.params.email;
@@ -287,6 +303,30 @@ async function run() {
       const result = await materialCollection.find().toArray();
       res.send(result)
     });
+
+
+    // payment 
+   app.get('/session/payment/:id', async(req, res)=>{
+    const id = req.params.id;
+    const query = {_id : new ObjectId(id)};
+    const result = await sessionCollection.findOne(query);
+    res.send(result)
+   })
+    // strip payment information
+    app.post('/stripe-payment', async (req, res) => { 
+      const { price } = req.body
+      const amount = parseInt(price * 100);
+      console.log( 'payment ammount',amount)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
 
 
     // delete for both teacher and admin 
