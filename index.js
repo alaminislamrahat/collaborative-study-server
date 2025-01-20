@@ -83,6 +83,44 @@ async function run() {
       const result = await noteCollection.insertOne(data);
       res.send(result);
     })
+    
+    app.get('/note-student', async(req, res) => {
+      const email = req.query.email
+      const result = await noteCollection.find({email : email}).toArray();
+      res.send(result);
+    })
+
+    app.get('/note-student/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const result = await noteCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.put('/note-update-student/:id', async(req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      console.log(data,id)
+      const query = {_id : new ObjectId(id)};
+      console.log(query,id)
+      const updatedDoc = {
+        $set:{
+          email : data.email,
+          title : data.title,
+          description : data.description
+        }
+      }
+      const result = await noteCollection.updateOne(query,updatedDoc);
+      res.send(result);
+    });
+
+
+    app.delete('/note-delete-student/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const result = await noteCollection.deleteOne(query);
+      res.send(result);
+    } )
 
     // review 
 
