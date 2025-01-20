@@ -345,8 +345,10 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/payment-intent', async(req, res)=>{
-      const result = await paymentCollection.find().toArray();
+    app.get('/payment-intent/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {sessionId : id}
+      const result = await paymentCollection.findOne(query);
       res.send(result);
     })
 
