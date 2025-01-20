@@ -35,6 +35,7 @@ async function run() {
     const materialCollection = client.db('studyZone').collection('materialCollection');
     const bookingCollection = client.db('studyZone').collection('bookingCollection');
     const paymentCollection = client.db('studyZone').collection('paymentCollection');
+    const reviewCollection = client.db('studyZone').collection('reviewCollection');
 
 
     await client.connect();
@@ -74,8 +75,27 @@ async function run() {
 
     // student 
 
+    // review 
+
+    app.get('/review', async(req, res) => {
+      const id = req.query.id;
+      console.log(id)
+      const query = {sessionId : id}
+      const result = await reviewCollection.find(query).toArray();
+      console.log(result)
+      res.send(result);
+    })
+
+    app.post('/reviews', async(req, res) => {
+      const data = req.body;
+      const result = await reviewCollection.insertOne(data);
+      res.send(result);
+    })
+
     app.get('/view/booked/session', async(req, res) => {
-      const result = await bookingCollection.find().toArray();
+      const email = req.query.email;
+      
+      const result = await bookingCollection.find({studentEmail:email}).toArray();
       res.send(result);
     })
 
