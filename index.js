@@ -36,6 +36,7 @@ async function run() {
     const bookingCollection = client.db('studyZone').collection('bookingCollection');
     const paymentCollection = client.db('studyZone').collection('paymentCollection');
     const reviewCollection = client.db('studyZone').collection('reviewCollection');
+    const noteCollection = client.db('studyZone').collection('noteCollection');
 
 
     await client.connect();
@@ -74,6 +75,14 @@ async function run() {
     })
 
     // student 
+
+    //note
+
+    app.post('/note-student', async(req, res) => {
+      const data = req.body;
+      const result = await noteCollection.insertOne(data);
+      res.send(result);
+    })
 
     // review 
 
