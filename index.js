@@ -34,6 +34,7 @@ async function run() {
     const sessionCollection = client.db('studyZone').collection('sessionCollection');
     const materialCollection = client.db('studyZone').collection('materialCollection');
     const bookingCollection = client.db('studyZone').collection('bookingCollection');
+    const paymentCollection = client.db('studyZone').collection('paymentCollection');
 
 
     await client.connect();
@@ -49,6 +50,11 @@ async function run() {
       }
 
       const result = await roleCollection.insertOne(role);
+      res.send(result);
+    })
+
+    app.get('/tutor', async(req, res) => {
+      const result = await roleCollection.find().toArray();
       res.send(result);
     })
 
@@ -68,6 +74,10 @@ async function run() {
 
     // student 
 
+    app.get('/view/booked/session', async(req, res) => {
+      const result = await bookingCollection.find().toArray();
+      res.send(result);
+    })
 
 
     app.get('/user/student/:email', async (req, res) => {
@@ -328,6 +338,17 @@ async function run() {
       })
     })
 
+
+    app.post('/payment-intent', async(req, res) => {
+      const data = req.body;
+      const result = await paymentCollection.insertOne(data);
+      res.send(result);
+    })
+
+    app.get('/payment-intent', async(req, res)=>{
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
+    })
 
     // delete for both teacher and admin 
     app.delete('/delete/material/:id', async (req, res) => {
