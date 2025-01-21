@@ -54,18 +54,18 @@ async function run() {
     const verifyToken = (req, res, next) => {
       // console.log('inside middle ware', req.headers.authorization);
       if (!req.headers.authorization) {
-          return res.status(401).send({ message: 'unauthorize access' })
+        return res.status(401).send({ message: 'unauthorize access' })
       }
       const token = req.headers.authorization.split(' ')[1];
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-          if (err) {
-              return res.status(401).send({ message: 'unauthorize access' })
-          }
-          req.decoded = decoded;
-          // console.log(decoded,'decoded',req.decoded ,'req decoded')
-          next();
+        if (err) {
+          return res.status(401).send({ message: 'unauthorize access' })
+        }
+        req.decoded = decoded;
+        // console.log(decoded,'decoded',req.decoded ,'req decoded')
+        next();
       })
-  }
+    }
 
     //  for role
     app.post('/role', async (req, res) => {
@@ -82,7 +82,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/tutor',verifyToken, async (req, res) => {
+    app.get('/tutor', verifyToken, async (req, res) => {
       const result = await roleCollection.find().toArray();
       res.send(result);
     })
@@ -105,7 +105,7 @@ async function run() {
 
     // matereial 
 
-    app.get('/all-material-student', verifyToken,async (req, res) => {
+    app.get('/all-material-student', verifyToken, async (req, res) => {
       const sessionId = req.query.sessionId;
       const query = { studySessionId: sessionId };
       const result = await materialCollection.find(query).toArray();
@@ -120,7 +120,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/note-student',verifyToken, async (req, res) => {
+    app.get('/note-student', verifyToken, async (req, res) => {
       const email = req.query.email
       const result = await noteCollection.find({ email: email }).toArray();
       res.send(result);
@@ -160,7 +160,7 @@ async function run() {
 
     // review 
 
-    app.get('/review',verifyToken, async (req, res) => {
+    app.get('/review', verifyToken, async (req, res) => {
       const id = req.query.id;
       console.log(id)
       const query = { sessionId: id }
@@ -175,7 +175,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/view/booked/session',verifyToken, async (req, res) => {
+    app.get('/view/booked/session', verifyToken, async (req, res) => {
       const email = req.query.email;
 
       const result = await bookingCollection.find({ studentEmail: email }).toArray();
@@ -195,9 +195,46 @@ async function run() {
     });
 
     app.get('/all-session-card', async (req, res) => {
-      const result = await sessionCollection.find().toArray();
+
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page) - 1;
+
+
+      const search = req.query.search;
+      let query = {}
+      if(query){
+        query = {
+
+          sessionTitle: { $regex: search, $options: 'i' }
+        }
+  
+      } 
+
+      const result = await sessionCollection
+        .find(query)
+        .skip(page * size)
+        .limit(size)
+        .toArray()
+
+      console.log(result)
       res.send(result);
     });
+
+
+    app.get('/session-count', async (req, res) => {
+
+
+      const search = req.query.search;
+      let query = {
+
+        sessionTitle: { $regex: search, $options: 'i' }
+      }
+
+
+      // countDocuments for count number of data for pagination 
+      const count = await sessionCollection.countDocuments(query)
+      res.send({ count });
+    })
 
     app.get('/detail/:id', async (req, res) => {
       const id = req.params.id;
@@ -258,7 +295,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/allSession/tutor',verifyToken, async (req, res) => {
+    app.get('/allSession/tutor', verifyToken, async (req, res) => {
       const email = req.query.email
       // console.log(email)
       const result = await sessionCollection.find({
@@ -277,7 +314,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/allMaterial',verifyToken, async (req, res) => {
+    app.get('/allMaterial', verifyToken, async (req, res) => {
       const email = req.query.email;
       const result = await materialCollection.find({ tutorEmail: email }).toArray();
       res.send(result)
@@ -337,7 +374,7 @@ async function run() {
     });
 
 
-    app.get('/all-role',verifyToken, async (req, res) => {
+    app.get('/all-role', verifyToken, async (req, res) => {
 
       const search = req.query.search;
       console.log(search)
@@ -379,7 +416,7 @@ async function run() {
     });
 
 
-    app.get('/session/admin/:id',verifyToken, async (req, res) => {
+    app.get('/session/admin/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
 
       const query = { _id: new ObjectId(id) };
@@ -411,7 +448,7 @@ async function run() {
     })
 
 
-    app.get('/allMaterial/admin',verifyToken, async (req, res) => {
+    app.get('/allMaterial/admin', verifyToken, async (req, res) => {
 
       const result = await materialCollection.find().toArray();
       res.send(result)
