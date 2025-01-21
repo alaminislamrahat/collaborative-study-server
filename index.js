@@ -183,7 +183,7 @@ async function run() {
     })
 
 
-    app.get('/user/student/:email', async (req, res) => {
+    app.get('/user/student/:email',verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
       const user = await roleCollection.findOne(query);
@@ -208,7 +208,7 @@ async function run() {
 
 
     // teacher --------------
-    app.get('/user/teacher/:email', async (req, res) => {
+    app.get('/user/teacher/:email',verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
       const user = await roleCollection.findOne(query);
@@ -227,7 +227,7 @@ async function run() {
     });
 
 
-    app.get('/session/:id', async (req, res) => {
+    app.get('/session/:id',verifyToken, async (req, res) => {
       const id = req.params.id;
 
       const query = { _id: new ObjectId(id) };
@@ -277,13 +277,13 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/allMaterial', async (req, res) => {
+    app.get('/allMaterial',verifyToken, async (req, res) => {
       const email = req.query.email;
       const result = await materialCollection.find({ tutorEmail: email }).toArray();
       res.send(result)
     });
 
-    app.get('/material/:id', async (req, res) => {
+    app.get('/material/:id',verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await materialCollection.findOne(query);
@@ -325,7 +325,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/user/admin/:email', async (req, res) => {
+    app.get('/user/admin/:email',verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
       const user = await roleCollection.findOne(query);
@@ -337,7 +337,7 @@ async function run() {
     });
 
 
-    app.get('/all-role', async (req, res) => {
+    app.get('/all-role',verifyToken,async (req, res) => {
 
       const search = req.query.search;
       console.log(search)
@@ -356,7 +356,7 @@ async function run() {
     });
 
 
-    app.get('/allSession/admin', async (req, res) => {
+    app.get('/allSession/admin',verifyToken, async (req, res) => {
 
       const result = await sessionCollection.find().toArray();
       res.send(result);
@@ -379,7 +379,7 @@ async function run() {
     });
 
 
-    app.get('/session/admin/:id', async (req, res) => {
+    app.get('/session/admin/:id',verifyToken, async (req, res) => {
       const id = req.params.id;
 
       const query = { _id: new ObjectId(id) };
@@ -419,7 +419,7 @@ async function run() {
 
 
     // payment -------------
-    app.get('/session/payment/:id', async (req, res) => {
+    app.get('/session/payment/:id',verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await sessionCollection.findOne(query);
