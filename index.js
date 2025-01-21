@@ -74,7 +74,16 @@ async function run() {
       res.send(result);
     })
 
-    // student 
+    // student ----------------
+
+    // matereial 
+
+    app.get('/all-material-student', async(req, res) => {
+      const sessionId = req.query.sessionId;
+      const  query = {studySessionId : sessionId};
+      const result = await materialCollection.find(query).toArray();
+      res.send(result);
+    })
 
     //note
 
@@ -171,7 +180,7 @@ async function run() {
     })
 
 
-    // teacher 
+    // teacher --------------
     app.get('/user/teacher/:email', async (req, res) => {
       const email = req.params.email;
       const query = { email: email }
@@ -271,7 +280,7 @@ async function run() {
 
 
 
-    // admin server
+    // admin server--------------
 
     app.put('/users/role/:id', async (req, res) => {
       const userData = req.body;
@@ -382,7 +391,7 @@ async function run() {
     });
 
 
-    // payment 
+    // payment -------------
    app.get('/session/payment/:id', async(req, res)=>{
     const id = req.params.id;
     const query = {_id : new ObjectId(id)};
