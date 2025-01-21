@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_KEY)
-
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT || 5000;
 
@@ -40,6 +40,33 @@ async function run() {
 
 
     await client.connect();
+
+    // jwt related api
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '1h'
+      });
+      res.send({ token })
+    })
+
+
+    const verifyToken = (req, res, next) => {
+      // console.log('inside middle ware', req.headers.authorization);
+      if (!req.headers.authorization) {
+          return res.status(401).send({ message: 'unauthorize access' })
+      }
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+          if (err) {
+              return res.status(401).send({ message: 'unauthorize access' })
+          }
+          req.decoded = decoded;
+          // console.log(decoded,'decoded',req.decoded ,'req decoded')
+          next();
+      })
+  }
+
     //  for role
     app.post('/role', async (req, res) => {
 
@@ -55,21 +82,21 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/tutor', async(req, res) => {
+    app.get('/tutor', async (req, res) => {
       const result = await roleCollection.find().toArray();
       res.send(result);
     })
 
 
     // booking collection 
-    app.post('/booking', async(req, res) => {
+    app.post('/booking', async (req, res) => {
       const data = req.body;
       const id = data.studySessionId;
-      const query = {studySessionId : id};
+      const query = { studySessionId: id };
       const isExit = await bookingCollection.findOne(query);
-      if(isExit){
-        return res.send({message : 'all Ready exist'})
-      } 
+      if (isExit) {
+        return res.send({ message: 'all Ready exist' })
+      }
       const result = await bookingCollection.insertOne(data);
       res.send(result);
     })
@@ -78,80 +105,80 @@ async function run() {
 
     // matereial 
 
-    app.get('/all-material-student', async(req, res) => {
+    app.get('/all-material-student',verifyToken, async (req, res) => {
       const sessionId = req.query.sessionId;
-      const  query = {studySessionId : sessionId};
+      const query = { studySessionId: sessionId };
       const result = await materialCollection.find(query).toArray();
       res.send(result);
     })
 
     //note
 
-    app.post('/note-student', async(req, res) => {
+    app.post('/note-student', async (req, res) => {
       const data = req.body;
       const result = await noteCollection.insertOne(data);
       res.send(result);
     })
-    
-    app.get('/note-student', async(req, res) => {
+
+    app.get('/note-student',verifyToken, async (req, res) => {
       const email = req.query.email
-      const result = await noteCollection.find({email : email}).toArray();
+      const result = await noteCollection.find({ email: email }).toArray();
       res.send(result);
     })
 
-    app.get('/note-student/:id', async(req, res) =>{
+    app.get('/note-student/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await noteCollection.findOne(query);
       res.send(result);
     })
 
-    app.put('/note-update-student/:id', async(req, res) => {
+    app.put('/note-update-student/:id', async (req, res) => {
       const data = req.body;
       const id = req.params.id;
-      console.log(data,id)
-      const query = {_id : new ObjectId(id)};
-      console.log(query,id)
+      console.log(data, id)
+      const query = { _id: new ObjectId(id) };
+      console.log(query, id)
       const updatedDoc = {
-        $set:{
-          email : data.email,
-          title : data.title,
-          description : data.description
+        $set: {
+          email: data.email,
+          title: data.title,
+          description: data.description
         }
       }
-      const result = await noteCollection.updateOne(query,updatedDoc);
+      const result = await noteCollection.updateOne(query, updatedDoc);
       res.send(result);
     });
 
 
-    app.delete('/note-delete-student/:id', async(req, res) => {
+    app.delete('/note-delete-student/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await noteCollection.deleteOne(query);
       res.send(result);
-    } )
+    })
 
     // review 
 
-    app.get('/review', async(req, res) => {
+    app.get('/review', async (req, res) => {
       const id = req.query.id;
       console.log(id)
-      const query = {sessionId : id}
+      const query = { sessionId: id }
       const result = await reviewCollection.find(query).toArray();
       console.log(result)
       res.send(result);
     })
 
-    app.post('/reviews', async(req, res) => {
+    app.post('/reviews', async (req, res) => {
       const data = req.body;
       const result = await reviewCollection.insertOne(data);
       res.send(result);
     })
 
-    app.get('/view/booked/session', async(req, res) => {
+    app.get('/view/booked/session',verifyToken, async (req, res) => {
       const email = req.query.email;
-      
-      const result = await bookingCollection.find({studentEmail:email}).toArray();
+
+      const result = await bookingCollection.find({ studentEmail: email }).toArray();
       res.send(result);
     })
 
@@ -172,9 +199,9 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/detail/:id', async(req, res) => {
+    app.get('/detail/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await sessionCollection.findOne(query);
       res.send(result);
     })
@@ -392,17 +419,17 @@ async function run() {
 
 
     // payment -------------
-   app.get('/session/payment/:id', async(req, res)=>{
-    const id = req.params.id;
-    const query = {_id : new ObjectId(id)};
-    const result = await sessionCollection.findOne(query);
-    res.send(result)
-   })
+    app.get('/session/payment/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await sessionCollection.findOne(query);
+      res.send(result)
+    })
     // strip payment information
-    app.post('/stripe-payment', async (req, res) => { 
+    app.post('/stripe-payment', async (req, res) => {
       const { price } = req.body
       const amount = parseInt(price * 100);
-      console.log( 'payment ammount',amount)
+      console.log('payment ammount', amount)
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
         currency: 'usd',
@@ -415,15 +442,15 @@ async function run() {
     })
 
 
-    app.post('/payment-intent', async(req, res) => {
+    app.post('/payment-intent', async (req, res) => {
       const data = req.body;
       const result = await paymentCollection.insertOne(data);
       res.send(result);
     })
 
-    app.get('/payment-intent/:id', async(req, res)=>{
+    app.get('/payment-intent/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {sessionId : id}
+      const query = { sessionId: id }
       const result = await paymentCollection.findOne(query);
       res.send(result);
     })
