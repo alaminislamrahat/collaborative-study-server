@@ -37,6 +37,7 @@ async function run() {
     const paymentCollection = client.db('studyZone').collection('paymentCollection');
     const reviewCollection = client.db('studyZone').collection('reviewCollection');
     const noteCollection = client.db('studyZone').collection('noteCollection');
+    const rejectionReasonCollection = client.db('studyZone').collection('rejectionReasonCollection');
 
 
     await client.connect();
@@ -194,47 +195,53 @@ async function run() {
       res.send({ student });
     });
 
-    app.get('/all-session-card', async (req, res) => {
+   // Endpoint to get paginated session cards
+app.get('/all-session-card', async (req, res) => {
+  const size = parseInt(req.query.size) || 10; // Default size: 10
+  const page = (parseInt(req.query.page) - 1) || 0; // Default page: 1
+  const search = req.query.search;
 
-      const size = parseInt(req.query.size);
-      const page = parseInt(req.query.page) - 1;
+  let query = {};
+  if (search) {
+    query = {
+      sessionTitle: { $regex: search, $options: 'i' }
+    };
+  }
 
+  try {
+    const result = await sessionCollection
+      .find(query)
+      .skip(page * size)
+      .limit(size)
+      .toArray();
 
-      const search = req.query.search;
-      let query = {}
-      if(query){
-        query = {
+    res.send(result);
+  } catch (error) {
+    console.error('Error fetching session cards:', error);
+    res.status(500).send({ error: 'Failed to fetch session cards.' });
+  }
+});
 
-          sessionTitle: { $regex: search, $options: 'i' }
-        }
-  
-      } 
+// Endpoint to count session cards
+app.get('/session-count', async (req, res) => {
+  const search = req.query.search;
 
-      const result = await sessionCollection
-        .find(query)
-        .skip(page * size)
-        .limit(size)
-        .toArray()
+  let query = {};
+  if (search) {
+    query = {
+      sessionTitle: { $regex: search, $options: 'i' }
+    };
+  }
 
-      console.log(result)
-      res.send(result);
-    });
+  try {
+    const count = await sessionCollection.countDocuments(query);
+    res.send({ count });
+  } catch (error) {
+    console.error('Error counting sessions:', error);
+    res.status(500).send({ error: 'Failed to count sessions.' });
+  }
+});
 
-
-    app.get('/session-count', async (req, res) => {
-
-
-      const search = req.query.search;
-      let query = {
-
-        sessionTitle: { $regex: search, $options: 'i' }
-      }
-
-
-      // countDocuments for count number of data for pagination 
-      const count = await sessionCollection.countDocuments(query)
-      res.send({ count });
-    })
 
     app.get('/detail/:id', async (req, res) => {
       const id = req.params.id;
@@ -269,7 +276,7 @@ async function run() {
 
       const query = { _id: new ObjectId(id) };
       const result = await sessionCollection.findOne(query);
-      console.log(result)
+      // console.log(result)
       res.send(result)
     });
 
@@ -348,9 +355,9 @@ async function run() {
 
     app.put('/users/role/:id', async (req, res) => {
       const userData = req.body;
-      console.log(userData)
+      // console.log(userData)
       const id = req.params.id;
-      console.log(id, userData.role)
+      // console.log(id, userData.role)
       const query = { _id: new ObjectId(id) };
 
       const updatedDoc = {
@@ -374,10 +381,27 @@ async function run() {
     });
 
 
+
+    // rejection 
+
+    app.post('/rejection/reason',async(req, res) => {
+      const data = req.body;
+      const result = await rejectionReasonCollection.insertOne(data);
+      res.send(result);
+    })
+
+    app.delete('/reject/reason/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {sessionId: id};
+      const result = await rejectionReasonCollection.deleteOne(query);
+      res.send(result);
+    })
+
+
     app.get('/all-role', verifyToken, async (req, res) => {
 
       const search = req.query.search;
-      console.log(search)
+      // console.log(search)
       let query = {};
       if (search) {
         query = {
@@ -421,7 +445,7 @@ async function run() {
 
       const query = { _id: new ObjectId(id) };
       const result = await sessionCollection.findOne(query);
-      console.log(result)
+      // console.log(result)
       res.send(result)
     });
 
@@ -466,7 +490,7 @@ async function run() {
     app.post('/stripe-payment', async (req, res) => {
       const { price } = req.body
       const amount = parseInt(price * 100);
-      console.log('payment ammount', amount)
+      // console.log('payment ammount', amount)
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
         currency: 'usd',
