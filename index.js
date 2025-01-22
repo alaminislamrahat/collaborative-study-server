@@ -390,8 +390,17 @@ app.get('/session-count', async (req, res) => {
       res.send(result);
     })
 
+
+    app.get('/rejection/reason/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {sessionId: id};
+      const result = await rejectionReasonCollection.findOne(query);
+      res.send(result)
+    })
+
     app.delete('/reject/reason/:id', async(req, res) => {
       const id = req.params.id;
+     
       const query = {sessionId: id};
       const result = await rejectionReasonCollection.deleteOne(query);
       res.send(result);
