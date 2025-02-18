@@ -8,9 +8,20 @@ const port = process.env.PORT || 5000;
 
 const app = express();
 
+//rahat change
+
+app.use(cors({
+  origin: ['http://localhost:5173',
+    'https://collaborative-study-plat-ad204.web.app',
+    'https://collaborative-study-plat-ad204.firebaseapp.com'
 
 
-app.use(cors());
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'], // Add methods you need
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionSuccessStatus: 200
+}));
 app.use(express.json());
 
 
@@ -40,7 +51,7 @@ async function run() {
     const rejectionReasonCollection = client.db('studyZone').collection('rejectionReasonCollection');
 
 
-    await client.connect();
+    // await client.connect();
 
     // jwt related api
     app.post('/jwt', async (req, res) => {
@@ -83,10 +94,12 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/tutor', verifyToken, async (req, res) => {
+    app.get('/tutor',  async (req, res) => {
       const result = await roleCollection.find().toArray();
       res.send(result);
     })
+
+
 
 
     // booking collection 
@@ -195,52 +208,52 @@ async function run() {
       res.send({ student });
     });
 
-   // Endpoint to get paginated session cards
-app.get('/all-session-card', async (req, res) => {
-  const size = parseInt(req.query.size) || 10; // Default size: 10
-  const page = (parseInt(req.query.page) - 1) || 0; // Default page: 1
-  const search = req.query.search;
+    // Endpoint to get paginated session cards
+    app.get('/all-session-card', async (req, res) => {
+      const size = parseInt(req.query.size) || 10; // Default size: 10
+      const page = (parseInt(req.query.page) - 1) || 0; // Default page: 1
+      const search = req.query.search;
 
-  let query = {};
-  if (search) {
-    query = {
-      sessionTitle: { $regex: search, $options: 'i' }
-    };
-  }
+      let query = {};
+      if (search) {
+        query = {
+          sessionTitle: { $regex: search, $options: 'i' }
+        };
+      }
 
-  try {
-    const result = await sessionCollection
-      .find(query)
-      .skip(page * size)
-      .limit(size)
-      .toArray();
+      try {
+        const result = await sessionCollection
+          .find(query)
+          .skip(page * size)
+          .limit(size)
+          .toArray();
 
-    res.send(result);
-  } catch (error) {
-    console.error('Error fetching session cards:', error);
-    res.status(500).send({ error: 'Failed to fetch session cards.' });
-  }
-});
+        res.send(result);
+      } catch (error) {
+        console.error('Error fetching session cards:', error);
+        res.status(500).send({ error: 'Failed to fetch session cards.' });
+      }
+    });
 
-// Endpoint to count session cards
-app.get('/session-count', async (req, res) => {
-  const search = req.query.search;
+    // Endpoint to count session cards
+    app.get('/session-count', async (req, res) => {
+      const search = req.query.search;
 
-  let query = {};
-  if (search) {
-    query = {
-      sessionTitle: { $regex: search, $options: 'i' }
-    };
-  }
+      let query = {};
+      if (search) {
+        query = {
+          sessionTitle: { $regex: search, $options: 'i' }
+        };
+      }
 
-  try {
-    const count = await sessionCollection.countDocuments(query);
-    res.send({ count });
-  } catch (error) {
-    console.error('Error counting sessions:', error);
-    res.status(500).send({ error: 'Failed to count sessions.' });
-  }
-});
+      try {
+        const count = await sessionCollection.countDocuments(query);
+        res.send({ count });
+      } catch (error) {
+        console.error('Error counting sessions:', error);
+        res.status(500).send({ error: 'Failed to count sessions.' });
+      }
+    });
 
 
     app.get('/detail/:id', async (req, res) => {
@@ -384,24 +397,24 @@ app.get('/session-count', async (req, res) => {
 
     // rejection 
 
-    app.post('/rejection/reason',async(req, res) => {
+    app.post('/rejection/reason', async (req, res) => {
       const data = req.body;
       const result = await rejectionReasonCollection.insertOne(data);
       res.send(result);
     })
 
 
-    app.get('/rejection/reason/:id', async(req, res) => {
+    app.get('/rejection/reason/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {sessionId: id};
+      const query = { sessionId: id };
       const result = await rejectionReasonCollection.findOne(query);
       res.send(result)
     })
 
-    app.delete('/reject/reason/:id', async(req, res) => {
+    app.delete('/reject/reason/:id', async (req, res) => {
       const id = req.params.id;
-     
-      const query = {sessionId: id};
+
+      const query = { sessionId: id };
       const result = await rejectionReasonCollection.deleteOne(query);
       res.send(result);
     })
@@ -449,7 +462,7 @@ app.get('/session-count', async (req, res) => {
     });
 
 
-    app.get('/session/admin/:id', verifyToken, async (req, res) => {
+    app.get('/session/admin/:id', async (req, res) => {
       const id = req.params.id;
 
       const query = { _id: new ObjectId(id) };
@@ -535,7 +548,7 @@ app.get('/session-count', async (req, res) => {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
