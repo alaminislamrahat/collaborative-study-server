@@ -94,11 +94,18 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/tutor',  async (req, res) => {
+    app.get('/tutor', async (req, res) => {
       const result = await roleCollection.find().toArray();
       res.send(result);
     })
 
+
+    app.get('/profile/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await roleCollection.findOne(query);
+      res.send(result)
+    })
 
 
 
@@ -365,6 +372,45 @@ async function run() {
 
 
     // admin server--------------
+    app.get('/admin-stats', async (req, res) => {
+      const users = await roleCollection.estimatedDocumentCount();
+      const review = await reviewCollection.estimatedDocumentCount();
+      const session = await sessionCollection.estimatedDocumentCount();
+      const matereial = await materialCollection.estimatedDocumentCount();
+      const booking = await bookingCollection.estimatedDocumentCount();
+
+      const result = await paymentCollection.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {
+              $sum: '$amount'
+            }
+          }
+        },
+      ]).toArray();
+      const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+
+      res.send({ users, review, session, revenue, matereial, booking })
+    })
+
+
+
+    app.get('/student-stats/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await paymentCollection.aggregate([
+        {
+          $group: {
+            email: email,
+            totalRevenue: {
+              $sum: '$amount'
+            }
+          }
+        },
+      ]).toArray();
+      const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+      res.send({ revenue })
+    })
 
     app.put('/users/role/:id', async (req, res) => {
       const userData = req.body;
